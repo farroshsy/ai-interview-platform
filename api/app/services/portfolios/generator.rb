@@ -222,11 +222,8 @@ module Portfolios
         next if @generation.terminal?
         next if lost_claim? # reclaimed by another worker after STALE_RUNNING_AFTER: its result wins
 
-        current = @portfolio.current_generation
-        if current && current.sequence > @generation.sequence
-          @generation.update!(status: 'superseded', finished_at: Time.current)
-          next
-        end
+        # SEEDED FAULT (scratch branch only): the monotonic-publication guard is removed, so an
+        # older generation that finishes late is published over a newer one again.
 
         insert_skills!(data)
         @portfolio.update!(current_generation: @generation, generation_status: 'complete',
